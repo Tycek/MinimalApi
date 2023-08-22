@@ -6,25 +6,49 @@ namespace MinimalApi;
 
 public class Signal
 {
-    public static void Send(string data)
+    private static string hostId = "10.0.1.150";
+    private static int hostPort = 80;
+
+    public static void SendPickup(SetPickupModel pickupData)
     {
-        //Uri uri = new Uri("tcp://4.tcp.eu.ngrok.io");
-        data += '\0';
-        byte[] requestBytes = Encoding.ASCII.GetBytes(data);
+        string packet = 'P' + pickupData.Quantity.ToString() + 'E' + '\0';
+        byte[] requestBytes = Encoding.ASCII.GetBytes(packet);
 
         using Socket socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        //socket.Connect(uri.Host, 17403);
-        socket.Connect("localhost", 8889);
+        socket.Connect(hostId, hostPort);
 
-        // Send the request.
-        // For the tiny amount of data in this example, the first call to Send() will likely deliver the buffer completely,
-        // however this is not guaranteed to happen for larger real-life buffers.
-        // The best practice is to iterate until all the data is sent.
         int bytesSent = 0;
         while (bytesSent < requestBytes.Length)
         {
             bytesSent += socket.Send(requestBytes, bytesSent, requestBytes.Length - bytesSent, SocketFlags.None);
         }
         socket.Disconnect(false);
+    }
+
+    public static GetPickupModel GetPickup()
+    {
+        string packet = "GE" + '\0';
+        byte[] requestBytes = Encoding.ASCII.GetBytes(packet);
+
+        using Socket socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+        socket.Connect(hostId, hostPort);
+
+        int bytesSent = 0;
+        while (bytesSent < requestBytes.Length)
+        {
+            bytesSent += socket.Send(requestBytes, bytesSent, requestBytes.Length - bytesSent, SocketFlags.None);
+        }
+        // chvilku se pocka
+        Thread.Sleep(50);
+
+        // precte se vysledek
+        byte[] resultBytes = new byte[4]; //GxyE
+        int bytesRead = socket.Receive(resultBytes, 4, SocketFlags.None);
+        socket.Disconnect(false);
+
+        if (bytesRead == 4)
+            return new GetPickupModel { Quantity = resultBytes[1], Status = resultBytes[2] == '2' ? "Confirm" : resultBytes[2] == '1' ? "Cancel" : "Waiting" };
+        else
+            return new GetPickupModel { Status = "Unknown" };
     }
 }
