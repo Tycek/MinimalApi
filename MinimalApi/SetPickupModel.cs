@@ -1,7 +1,7 @@
 ﻿namespace MinimalApi;
 
-public class SendDataModel
+public class SetPickupModel
 {
     public int LocationId { get; set; }
-    public bool Signal { get; set; }
+    public int Quantity { get; set; }
 }
