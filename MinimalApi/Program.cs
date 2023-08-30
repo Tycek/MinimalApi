@@ -12,8 +12,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/pickup", (SetPickupModel data) => Signal.SendPickup(data));
-app.MapGet("/pickup", Signal.GetPickup);
+app.MapPost("/pickup", (SetPickupModel data) => Signal.SendPickup(data)).WithTags("Signal");
+app.MapGet("/pickup", Signal.GetPickup).WithTags("Signal");
+app.MapPost("/serialPickup", (SetPickupModel data) => SerialSignal.SendPickup(data)).WithTags("SerialSignal");
+app.MapGet("/serialPickup", SerialSignal.GetPickup).WithTags("SerialSignal");
 
 app.Run();
 
